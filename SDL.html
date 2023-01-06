@@ -1,0 +1,289 @@
+<html>
+  <body>
+    <h1>About SDL</h1>
+    <p>Simple DirectMedia Layer was first created by Sam Lantinga while working for Loki Software. Loki Software ported a number of
+popular games to other platforms. SDL uses modules for different APIs to wrap the platform specific stuff into subsystems that
+let you use a few functions without worrying about all the details of how things are carried out. It's more than just a graphics
+library too. Most of the things you would use in a simple game or in a game engine that would be implemented differently on 
+different platforms are a subsystem. It saves you a lot of work writing code for audio, input, multithreading, networking,
+different file systems, timers, logging, error handling, and CD-ROMs. There are a couple of additional standard libraries to
+choose from if a basic subsystem doesn't offer everything you need.</p>
+    <h1>Your first SDL program</h1>
+    <p>First thing you are to need to do is include the SDL header. Second thing is SDL needs your main function to be able to take
+command line arguments and return an int to work. Your C compiler may not require it but SDL does. Third you need to call SDL_Init() before using
+any other SDL functions for them to work. It takes an integer argument to tell it which subsystems to initialize. The constant
+SDL_INIT_EVERYTHING is provided to just intialize everything. SDL_INIT_VIDEO and SDL_INIT_AUDIO initialize that subsystem and some other subsystems
+by default. <a href = "https://wiki.libsdl.org/SDL_Init">SDL_INIT() documentation.</a></p>
+    <pre><code>#include &ltSDL2/SDL.h&gt
+
+//SDL needs main to return an int and take these arguments to work
+int main( int argc, char* args[] )
+{
+    //Start SDL. This needs to be called before any other SDL stuff. Using SDL_INIT_EVERYTHING is fine until you are familiar with the subsystems.
+    SDL_Init( SDL_INIT_EVERYTHING );
+    
+    //Free up resources and shut down SDL stuff
+    SDL_Quit();
+    
+    return 0;
+}</code></pre>
+    <h1>Creating a window</h1>
+    <p>This program creates a 640 by 480 window centered in the middle of the screen with the title "Hello World!" and immediately destroys it.
+The last 0 in the function call is the flag that can be used to do things like display the window full screen and things like that. 
+<a href = "https://wiki.libsdl.org/SDL_CreateWindow">SDL_CreateWindow() documentation.</a></p>
+    <pre><code>#include &ltSDL2/SDL.h&gt
+
+int main(int argc, char* argv[])
+{
+	//Start SDL
+	SDL_Init(SDL_INIT_EVERYTHING);
+
+	//Create a 640 by 480 Centered window named "win" with the title "Hello World!".
+	SDL_Window* win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+
+	//Destroys window named "win". SDL_Quit() should take care of this but not freeing up your resources is bad practice.
+	SDL_DestroyWindow(win);
+
+	//Quit SDL
+	SDL_Quit();
+
+	return 0;
+}</code></pre>
+    <h1>Introducing events</h1>
+    <p>SDL has an event queue. The event queue grabs up mouse movements, mouse clicks, keyboard presses, keyboard releases, game controllers
+    (if that subsystem is initialized) and other things. Events are initialized if you initialize the video subsystem. A SDL Event is a union
+    of all types. You can push events to the event queue if you like. <a href = "https://wiki.libsdl.org/CategoryEvents">Check out documentation 
+    to learn how to read events beyond their type.</a>To the last program I added a loop that pops any events off the event queue, stores them
+them in the variable "event", and checks if they are a click to the close button on the window (SDL_QUIT) or a keypress (SDL_KEYDOWN).</p>
+    <pre><code>#include &ltSDL2/SDL.h&gt
+
+int main(int argc, char* argv[])
+{
+	/*----Start Variables---- */
+	SDL_Window* win = NULL;
+	SDL_Event event;
+
+	int gameLoop = 1;
+	/*-----End Variables-----*/
+
+	//Start SDL
+	SDL_Init(SDL_INIT_EVERYTHING);
+
+	//Create window named "win".
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+
+	while(gameLoop)
+	{
+        //Pop SDL_Event off event queue and store it in my variable until event queue is empty.
+        while(SDL_PollEvent(&ampevent))
+		{
+            //The type of an event gives you what member of the SDL_Event union the event is.
+			switch(event.type)
+			{
+				case SDL_QUIT:
+					gameLoop = 0;
+					break;
+				case SDL_KEYDOWN:
+					gameLoop = 0;
+					break;
+			}
+		}
+	}
+	//Destroys window named "win".
+	SDL_DestroyWindow(win);
+
+	//Quit SDL
+	SDL_Quit();
+
+	return 0;
+}</code></pre>
+    <h1>Introducing surfaces</h1>
+    <p>An SDL_Window has an SDL_Surface. Get a pointer for the window's surface with SDL_GetWindowSurface().After drawing
+    to the window's surface, you need to call SDL_UpdateWindowSurface() for the new updated surface to be displayed.</p>
+    <p>Additional surfaces can be created for holding images loaded from a bitmap file and surfaces or regions of surfaces
+    can be copied (called a blit) to other surfaces.</p>
+    <a href = "https://wiki.libsdl.org/SDL_GetWindowSurface">SDL_GetWindowSurface()</a><a href = "https://wiki.libsdl.org/SDL_UpdateWindowSurface">SDL_UpdateWindowSurface()</a>
+    <pre><code>#include &ltSDL2/SDL.h&gt
+
+int main(int argc, char* argv[])
+{
+	/*----Start Variables---- */
+	//This will hold the pointer to window "win" surface
+	SDL_Surface* winSurface = NULL;
+
+	SDL_Window* win = NULL;
+	SDL_Event event;
+	int gameLoop = 1;
+	/*-----End Variables-----*/
+
+	//Start SDL*
+	SDL_Init(SDL_INIT_VIDEO);
+
+	//Create window named "win".*
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+
+	//Assign a pointer to the window's surface to winSurface 
+	winSurface = SDL_GetWindowSurface(win);
+
+	//Insert code here to draw to winSurface
+
+	//Draws whatever is on the window "win" surface to the screen
+	SDL_UpdateWindowSurface(win);
+
+    //Wait for an event to close window
+	while(gameLoop)
+	{
+		while(SDL_PollEvent(&ampevent))
+		{
+			switch(event.type)
+			{
+				case SDL_QUIT:
+					gameLoop = 0;
+					break;
+				case SDL_KEYDOWN:
+					gameLoop = 0;
+					break;
+			}
+		}
+	}
+
+	//Destroys window named "win".
+	SDL_DestroyWindow(win);
+
+	//Quit SDL
+	SDL_Quit();
+
+	return 0;
+}</code></pre>
+    <h1>SDL_Rect</h1>
+    <p>An <a href = "https://wiki.libsdl.org/SDL_Rect">SDL_Rect</a> is a structure for defining a rectangular area of a surface. From the 
+    header file:</p>
+    <pre><code>typedef struct SDL_Rect
+    {
+        int x, y;
+        int w, h;
+    } SDL_Rect;</code></pre>
+    <p>The x and y are the coordinates of the upper left corner of the SDL_Rect. The w and h are the width and height. SDL uses SDL_Rect
+    for selecting the area of a surface for blitting. SDL also provides functions that take SDL_Rects and can be used for collision detection.</p>
+    <h1>SDL_FillRect</h1>
+    <p>This program fills the </p>
+    <p>Other function for simple drawing to a surface can be found here</p>
+<pre><code>#include &ltSDL2/SDL.h&gt
+
+int main(int argc, char* argv[])
+{
+	/*----Start Variables---- */
+	SDL_Surface* winSurface = NULL;
+
+	SDL_Window* win = NULL;
+	SDL_Event event;
+	int gameLoop = 1;
+	/*-----End Variables-----*/
+
+	//Start SDL*
+	SDL_Init(SDL_INIT_VIDEO);
+
+	//Create window named "win".*
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+
+	//Assign a pointer to the window's surface to winSurface
+	winSurface = SDL_GetWindowSurface(win);
+
+	//SDL_FillRect() takes the surface, a rect or NULL to fill the whole surface, and a pixel color in the surface format
+    //SDL_MapRGB() or SDL_MapRGBA() takes the format value from a surface and RGB values 0-255 and returns a pixel in that format
+	SDL_FillRect(winSurface, NULL, SDL_MapRGB(winSurface-&gtformat, 255, 0, 0) );
+
+	//Draws whatever is on the window "win" surface to the screen
+	SDL_UpdateWindowSurface(win);
+	//Wait for an event to close window
+	while(gameLoop)
+	{
+		while(SDL_PollEvent(&event))
+		{
+			switch(event.type)
+			{
+				case SDL_QUIT:
+					gameLoop = 0;
+					break;
+				case SDL_KEYDOWN:
+					gameLoop = 0;
+					break;
+			}
+		}
+	}
+	//No need to free the window's surface, SDL_DestroyWindow() takes care of that
+	//Destroys window named "win".
+	SDL_DestroyWindow(win);
+
+	//Quit SDL
+	SDL_Quit();
+
+	return 0;
+}</code></pre>
+    <h1>Loading and blitting images</h1>
+    <p></p>
+<pre><code>#include &ltSDL2/SDL.h&gt
+
+int main(int argc, char* argv[])
+{
+	/*----Start Variables---- */
+	//This will hold the pointer to window "win" surface
+    SDL_Surface* imageSurface = NULL;//*
+
+	SDL_Surface* winSurface = NULL;
+	SDL_Window* win = NULL;
+	SDL_Event event;
+	int gameLoop = 1;//want to call this mainLoop or something
+	/*-----End Variables-----*/
+
+	//Start SDL*
+	SDL_Init(SDL_INIT_VIDEO);
+
+	//Create window named "win".*
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, 0);
+
+	//Assign a pointer to the window's surface to winSurface
+	winSurface = SDL_GetWindowSurface(win);
+
+	//Insert code here to draw to winSurface
+    imageSurface = SDL_LoadBMP("image.bmp");
+
+    //Blit imageSurface to winSurface
+    SDL_BlitSurface( imageSurface, NULL, winSurface, NULL );
+
+	//Draws whatever is on the window "win" surface to the screen
+	SDL_UpdateWindowSurface(win);
+	//Wait for an event to close window
+	while(gameLoop)
+	{
+		while(SDL_PollEvent(&event))
+		{
+			switch(event.type)
+			{
+				case SDL_QUIT:
+					gameLoop = 0;
+					break;
+				case SDL_KEYDOWN:
+					gameLoop = 0;
+					break;
+			}
+		}
+	}
+	//No need to free the window's surface, SDL_DestroyWindow() takes care of that
+    //Free surface the image was stored in
+    SDL_FreeSurface(imageSurface);
+
+	//Destroys window named "win".
+	SDL_DestroyWindow(win);
+
+	//Quit SDL
+	SDL_Quit();
+
+	return 0;
+}</code></pre>
+    <h1>Mouse Events</h1>
+    <h1>Keyboard Events</h1>
+    <h1>2d Accelerated Rendering</h1>
+    <p></p>
+  </body>
+</html>
